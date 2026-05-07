@@ -1,308 +1,306 @@
 <template>
-  <div id="app" class="container-fluid">
-    <ais-index appId="latency" apiKey="6be0576ff61c053d5f9a3225e2a90f76">
-      <div class="row">
-        <div class="col-md-2 col-sm-3">
-          <h1 class="head-title">
-            Demo Store
-          </h1>
+  <main class="page-shell">
+    <ais-instant-search index-name="demo_ecommerce" :search-client="searchClient">
+      <ais-configure :hits-per-page.camel="12" />
+
+      <header class="header">
+        <div>
+          <p class="eyebrow">Vue InstantSearch</p>
+          <h1>Demo Store</h1>
         </div>
 
-        <div class="col-md-10 col-sm-9">
-          <ais-search-box>
-            <div class="input-group">
-              <ais-input
-                placeholder="Search product by name or reference..."
-                :classNames="{
-                  'ais-input': 'form-control'
-                }"
-              />
+        <ais-powered-by />
+      </header>
 
-              <span class="input-group-btn">
-                <ais-clear :classNames="{ 'ais-clear': 'btn btn-default' }">
-                  <span class="glyphicon glyphicon-remove" aria-hidden="true"></span>
-                </ais-clear>
+      <section class="search-panel">
+        <ais-search-box placeholder="Search products..." />
+      </section>
 
-                <button class="btn btn-default" type="submit">
-                  <span class="glyphicon glyphicon-search" aria-hidden="true"></span>
-                </button>
-              </span>
-            </div>
-          </ais-search-box>
-        </div>
-      </div>
+      <div class="layout">
+        <aside class="filters">
+          <section class="filter-card">
+            <h2>Brand</h2>
+            <ais-refinement-list attribute="brand" searchable />
+          </section>
 
-      <div class="row">
-        <div class="col-md-2 col-sm-3">
-          <ais-tree-menu
-            :attributes="[
-              'hierarchicalCategories.lvl0',
-              'hierarchicalCategories.lvl1',
-              'hierarchicalCategories.lvl2'
-            ]"
-            :classNames="{
-              'ais-tree-menu__list': 'list-unstyled',
-              'ais-tree-menu__count': 'badge'
-            }"
-          >
-            <h3 slot="header">Browse by</h3>
-          </ais-tree-menu>
-
-          <ais-price-range
-            attribute-name="price"
-            :classNames="{
-              'ais-price-range__input': 'form-control'
-            }"
-          >
-            <h3 slot="header">Price</h3>
-          </ais-price-range>
-
-          <ais-refinement-list
-            attribute-name="categories"
-            :classNames="{
-              'ais-refinement-list__count': 'badge',
-              'ais-refinement-list__item': 'checkbox'
-            }"
-          >
-            <h3 slot="header">Category</h3>
-          </ais-refinement-list>
-
-          <ais-refinement-list
-            attribute-name="brand"
-            :classNames="{
-              'ais-refinement-list__count': 'badge',
-              'ais-refinement-list__item': 'checkbox'
-            }"
-          >
-            <h3 slot="header">Brand</h3>
-          </ais-refinement-list>
-
-          <ais-rating
-            attribute-name="rating"
-            :classNames="{
-              'ais-rating__count': 'badge'
-            }"
-          >
-            <h3 slot="header">Rating</h3>
-          </ais-rating>
-        </div>
-
-        <div class="col-md-10 col-sm-9">
-          <div class="search-controls form-inline">
-            <ais-sort-by-selector
-              :indices="[
-                { name: 'instant_search', label: 'Relevance' },
-                { name: 'instant_search_price_asc', label: 'Lowest price' },
-                { name: 'instant_search_price_desc', label: 'Highest price' }
+          <section class="filter-card">
+            <h2>Categories</h2>
+            <ais-hierarchical-menu
+              :attributes="[
+                'hierarchicalCategories.lvl0',
+                'hierarchicalCategories.lvl1',
+                'hierarchicalCategories.lvl2'
               ]"
-              :classNames="{
-                'ais-sort-by-selector': 'form-control'
-              }"
             />
+          </section>
 
-            <ais-results-per-page-selector
-              :options="[12, 24, 48]"
-              :classNames="{
-                'ais-results-per-page-selector': 'form-control'
-              }"
-            />
+          <section class="filter-card">
+            <h2>Price</h2>
+            <ais-range-input attribute="price" />
+          </section>
 
-            <ais-powered-by />
+          <section class="filter-card">
+            <h2>Rating</h2>
+            <ais-rating-menu attribute="rating" />
+          </section>
 
+          <ais-clear-refinements />
+        </aside>
+
+        <section class="results-area">
+          <div class="toolbar">
             <ais-stats />
+            <ais-hits-per-page :items="hitsPerPageItems" />
           </div>
 
-          <ais-results>
-            <template slot-scope="{ result }">
-              <div class="search-result">
-                <img class="result__image img-responsive" :src="result.image" />
+          <ais-state-results>
+            <template v-slot="{ results: searchResults }">
+              <p v-if="searchResults && searchResults.nbHits === 0" class="empty-state">
+                No matching products found.
+              </p>
+            </template>
+          </ais-state-results>
 
-                <div class="result__info">
-                  <h2 class="result__name">
-                    <ais-highlight :result="result" attribute-name="name" />
+          <ais-hits>
+            <template v-slot:item="{ item }">
+              <article class="product-card">
+                <img
+                  v-if="item.image"
+                  class="product-image"
+                  :src="item.image"
+                  :alt="item.name || 'Product image'"
+                />
+
+                <div class="product-content">
+                  <h2>
+                    <ais-highlight attribute="name" :hit="item" />
                   </h2>
 
-                  <div class="result__type">
-                    <ais-highlight :result="result" attribute-name="type" />
-                  </div>
+                  <p v-if="item.brand" class="brand">{{ item.brand }}</p>
+                  <p v-if="item.categories" class="category">{{ formatCategories(item.categories) }}</p>
 
-                  <div class="result__rating">
-                    <!--
-                    <template v-for="n in 5">
-                      <span v-if="n <= result.rating" class="result__star" :key="n"></span>
-                      <span v-else class="result__star--empty" :key="n"></span>
-                    </template>
-                    -->
-                  </div>
-
-                  <div class="result__price">${{ result.price }}</div>
+                  <p v-if="item.price" class="price">${{ item.price }}</p>
                 </div>
-              </div>
+              </article>
             </template>
-          </ais-results>
+          </ais-hits>
 
-          <ais-no-results />
-
-          <ais-pagination
-            class="pagination"
-            :classNames="{
-              'ais-pagination': 'pagination',
-              'ais-pagination__item--active': 'active',
-              'ais-pagination__item--disabled': 'disabled'
-            }"
-            v-on:page-change="onPageChange"
-          />
-        </div>
+          <ais-pagination @page-change="scrollToTop" />
+        </section>
       </div>
-    </ais-index>
-  </div>
+    </ais-instant-search>
+  </main>
 </template>
 
 <script>
+import { liteClient as algoliasearch } from 'algoliasearch/lite';
+import 'instantsearch.css/themes/algolia-min.css';
+
 export default {
-  name: 'app',
+  name: 'App',
+
+  data() {
+    return {
+      searchClient: algoliasearch(
+        'B1G2GM9NG0',
+        'aadef574be1f9252bb48d4ea09b5cfe5'
+      ),
+      hitsPerPageItems: [
+        { label: '12 per page', value: 12, default: true },
+        { label: '24 per page', value: 24 },
+        { label: '48 per page', value: 48 },
+      ],
+    };
+  },
 
   methods: {
-    onPageChange() {
-      window.scrollTo(0, 0);
+    scrollToTop() {
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    },
+
+    formatCategories(categories) {
+      if (Array.isArray(categories)) {
+        return categories.join(' › ');
+      }
+
+      return categories;
     },
   },
 };
 </script>
 
 <style>
-#app {
-  -webkit-font-smoothing: antialiased;
-  padding-top: 20px;
+* {
+  box-sizing: border-box;
 }
 
-.head-title {
-  margin-top: 0;
+body {
+  margin: 0;
+  background: #f6f7fb;
+  color: #1f2937;
+  font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
 }
 
-.ais-powered-by {
-  float: right;
-  line-height: 26px;
+.page-shell {
+  width: min(1180px, calc(100% - 32px));
+  margin: 0 auto;
+  padding: 32px 0 48px;
 }
 
-.ais-powered-by svg {
-  vertical-align: bottom;
+.header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 24px;
+  margin-bottom: 24px;
 }
 
-.search-controls {
-  padding-bottom: 20px;
+.header h1 {
+  margin: 0;
+  font-size: 38px;
+  line-height: 1.1;
 }
 
-.search-controls .form-control {
-  float: right;
-  margin-left: 10px;
+.eyebrow {
+  margin: 0 0 6px;
+  color: #6b7280;
+  font-size: 13px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
 }
 
-.ais-stats {
-  line-height: 36px;
+.search-panel {
+  margin-bottom: 24px;
 }
 
-.ais-results:after {
-  content: ' ';
-  display: block;
-  clear: both;
+.layout {
+  display: grid;
+  grid-template-columns: 280px minmax(0, 1fr);
+  gap: 24px;
 }
 
-.search-result {
-  padding: 10px 20px 20px;
-  width: 24%;
-  margin-bottom: 10px;
-  border: solid 1px #eee;
-  box-shadow: 0 0 3px #f6f6f6;
-  margin-right: 1%;
-  position: relative;
-  border-radius: 3px;
-  min-width: 220px;
+.filters,
+.results-area,
+.search-panel {
+  min-width: 0;
+}
+
+.filter-card,
+.results-area,
+.search-panel {
+  border: 1px solid #e5e7eb;
+  border-radius: 16px;
   background: #fff;
-  display: inline;
-  float: left;
-  transition: all 0.5s;
+  box-shadow: 0 12px 32px rgba(15, 23, 42, 0.06);
 }
 
-.result__info {
-  position: absolute;
+.search-panel {
+  padding: 18px;
+}
+
+.filters {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.filter-card {
+  padding: 18px;
+}
+
+.filter-card h2 {
+  margin: 0 0 12px;
+  font-size: 16px;
+}
+
+.results-area {
+  padding: 18px;
+}
+
+.toolbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  margin-bottom: 18px;
+}
+
+.ais-Hits-list {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+  gap: 16px;
+  margin: 0;
+  padding: 0;
+}
+
+.ais-Hits-item {
+  padding: 0;
+  border: 0;
+  box-shadow: none;
+}
+
+.product-card {
+  height: 100%;
+  overflow: hidden;
+  border: 1px solid #e5e7eb;
+  border-radius: 14px;
+  background: #fff;
+}
+
+.product-image {
   width: 100%;
-  padding: 0 20px 20px;
-  bottom: 0;
-  left: 0;
+  height: 180px;
+  object-fit: contain;
+  padding: 18px;
+  background: #f9fafb;
 }
 
-.result__image {
-  margin-bottom: 100px;
-  height: 150px;
+.product-content {
+  padding: 16px;
 }
 
-.result__name {
-  font-size: 14px;
-  font-weight: bold;
+.product-content h2 {
+  min-height: 44px;
+  margin: 0 0 8px;
+  font-size: 16px;
+  line-height: 1.35;
 }
 
-.result__name mark,
-.result__type mark {
-  font-style: normal;
-  background: rgba(143, 187, 237, 0.1);
-  box-shadow: inset 0 -1px 0 0 rgba(69, 142, 225, 0.8);
+.brand,
+.category {
+  margin: 0 0 6px;
+  color: #6b7280;
+  font-size: 13px;
 }
 
-.result__type mark {
-  background: rgba(143, 187, 237, 0.1);
-  border-radius: 0;
-  box-shadow: inset 0 -1px 0 0 rgba(69, 142, 225, 0.8);
+.price {
+  margin: 12px 0 0;
+  color: #111827;
+  font-size: 22px;
+  font-weight: 800;
 }
 
-.result__price {
-  font-size: 25px;
-  font-weight: bold;
-  position: absolute;
-  right: 20px;
-  bottom: 16px;
+.empty-state {
+  margin: 0 0 18px;
+  border-radius: 12px;
+  background: #fff7ed;
+  padding: 14px 16px;
+  color: #9a3412;
 }
 
-.result__type {
-  color: #a2a2a2;
-  font-size: 12px;
+.ais-Pagination {
+  margin-top: 24px;
 }
 
-.result__rating {
-  margin-top: 10px;
-}
+@media (max-width: 860px) {
+  .layout {
+    grid-template-columns: 1fr;
+  }
 
-.result__star {
-  width: 1em;
-  height: 1em;
-}
-
-.result__star:before {
-  content: '\2605';
-  color: #fbae00;
-}
-
-.result__star--empty:before {
-  content: '\2606';
-  color: #fbae00;
-}
-
-.ais-sort-by-selector {
-  float: right;
-}
-
-.ais-results-per-page-selector {
-  float: right;
-  margin-right: 10px;
-}
-
-.ais-clear--disabled {
-  display: none;
-}
-
-.ais-price-range__input--from,
-.ais-price-range__input--to {
-  width: 65px;
-  display: inline-block;
+  .header {
+    align-items: flex-start;
+    flex-direction: column;
+  }
 }
 </style>

@@ -1,21 +1,23 @@
-# e-commerce example
+# Vue + Algolia Demo Store
 
-> Algolia + Vue.js in an e-commerce site
+This is a Vite + Vue 3 + Vue InstantSearch 4 demo.
 
-## Build Setup
+## Run locally
 
-``` bash
-# install dependencies
+```bash
 npm install
-
-# serve with hot reload at localhost:8080
 npm run dev
-
-# build for production with minification
-npm run build
-
-# build for production and view the bundle analyzer report
-npm run build --report
 ```
 
-For detailed explanation on how things work, checkout the [guide](http://vuejs-templates.github.io/webpack/) and [docs for vue-loader](http://vuejs.github.io/vue-loader).
+## CodeSandbox
+
+Import this repository or upload the zip. The root folder must contain:
+
+```text
+package.json
+index.html
+src/main.js
+src/App.vue
+```
+
+Do not put these files inside an extra nested folder when importing into CodeSandbox.
